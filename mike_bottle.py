@@ -183,12 +183,23 @@ def show_form():
 </form></body><html>'''
 
 @post('/my_form')
+def show_name():
+    x = "{} ".format(request.POST.distanceradio) +"select {} ".format(request.POST.selecttype) +"# {} ".format(request.POST.numresults) +"LDD {} ".format(request.POST.distance) +"PU {} ".format(request.POST.pickupcity) +"END {} ".format(request.POST.endcity) +"D/T {} ".format(request.POST.datetimeradio) +"DATEFROM {} ".format(request.POST.datefrom) +"DATETO {} ".format(request.POST.dateto)
+    return x
+
 def process_form():
     dfilter = "Distance"+request.POST.distanceradio+request.POST.distance
     pufilter = request.POST.pickupcity.upper()
     ecfilter = request.POST.endcity.upper()
+    #@todo pass all this stuff to filter and hide pandas.
+    # filter("Distance >= number AND data BETWEEN 'date1' AND 'date2'")
+    #@todo use a dict where key matches column headers.  dataframe.columns()
+    # dict.fromkeys(list(df),0)
+    #@todo use between() for dates
     if request.POST.datefrom != ""
         fromdatefilter = request.POST.datetimeradio + " >= " + request.POST.datefrom
+    else:
+        fromdatefilter = request.POST.datetimeradio + " >= " + pandas.to_datetime("2018-01-01")
     if request.POST.dateto != "" 
         todatefilter   = request.POST.datetimeradio + " <= " + request.POST.dateto
     else:
@@ -203,9 +214,6 @@ def process_form():
     dataparser.readlines()
     mike.save(dataparser)
     
-def show_name():
-    x = "{} ".format(request.POST.distanceradio) +"select {} ".format(request.POST.selecttype) +"# {} ".format(request.POST.numresults) +"LDD {} ".format(request.POST.distance) +"PU {} ".format(request.POST.pickupcity) +"END {} ".format(request.POST.endcity) +"D/T {} ".format(request.POST.datetimeradio) +"DATEFROM {} ".format(request.POST.datefrom) +"DATETO {} ".format(request.POST.dateto)
-    return x
 
 
 #self._dataframe  = pd.DataFrame.from_records(record,columns=['Received Date','Pickup Date','From','To','Distance'])
