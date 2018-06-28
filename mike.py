@@ -10,12 +10,27 @@ import time
 import pickle
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 #Subject line possible from/to
 #a,b to c,d
 #a b,c to d,e
 #a,b to c d, e
 #a b,c to d e,f
+
+#############################################################################
+def save(obj):
+    pickle.dump(obj,open('mikedata.pickle','wb'))
+
+def load():
+    myfile="mikedata.pickle"
+    if Path(myfile).is_file():
+        return pickle.load(open(myfile,'rb'))
+    return None
+
+def columns():
+    return ['Received Date','Pickup Date','From','To','Distance']
+#############################################################################
 
 class MikeDataParser:
     def __init__(self,filename):   
@@ -37,7 +52,7 @@ class MikeDataParser:
                 received.extend(alist)
                 record.append(received)
 
-        self._dataframe  = pd.DataFrame.from_records(record,columns=['Received Date','Pickup Date','From','To','Distance'])
+        self._dataframe  = pd.DataFrame.from_records(record,columns=columns())
         self._dataframe.drop_duplicates(inplace=True)
 
     def parseSubjectToPandas(self,line,commasep):
@@ -88,10 +103,32 @@ class MikeDataParser:
         return s.head(num)
         #print s.nlargest(num)  #same result
 
+    def grab(self,mask,num):
+        if mask == "mostcommon":
+           return self.mostCommon(num)
+        if mask == "mostrecent":
+           return self.mostRecent(num)
+
     def mostCommon(self,num=5):
         """Return most common trips sorted by number of repeats (descending)"""
         ft = self._dataframe.groupby(['From','To'],sort=False)
         return sorted(ft,key=lambda x:len(x[1]),reverse=True)[0:num]
+
+    def mostCommon2(self,num=5):
+        """Return most common trips sorted by number of repeats (descending)"""
+        df = self._dataframe
+        df.assign(freq=df.groupby(['From','To'],sort=False)['From'].transform('count')).sort_values(by=['freq','From'],ascending=[False,True])
+        return df[0:num]
+
+    def dataframe(self):
+        return self._dataframe
+
+    def to_html(self):
+        return self._dataframe.to_html()
+
+    def mostRecent(self,num=5):
+        """Return most recent (Pickup Date) trips sorted by most recent first"""
+        return self._dataframe.sort_values(by=['Pickup Date'],ascending=False)[0:num]
 
     def search(self,column,expr,casesensitive=False):
         """Find string expr in column"""
@@ -105,10 +142,30 @@ class MikeDataParser:
     #    """Find From or To that matches location"""
     #    return self.dataframe().filter(like=location)
 
-    def filter(self,d=None,pu=None,ec=None,df=None,dt=None):
-        df = self._dataframe
-        if d != None:
-           cond1 = df.query(d)
+    #['Received Date','Pickup Date','From','To','Distance']
+    def filter(self,filter_mask):
+       df = self._dataframe
+       if filter_mask['Distance']!=None:
+          df=df.query('Distance'+filter_mask['Distance'])
+       if filter_mask["Received Date"] != None:
+          datestr = "Received Date"
+       elif filter_mask["Pickup Date"] != None:
+          datestr = "Pickup Date"
+       else:
+          datestr=None
+       if datestr != None:
+           if filter_mask[datestr][0] == None:
+              filter_mask[datestr][0] = pandas.to_datetime("2018-01-01")
+           if filter_mask[datestr][1] == None:
+              filter_mask[datestr][1] = pandas.to_datetime('now')
+           cond2 = df[datestr].between(filter_mask[datestr][0],filter_mask[datestr][1])
+           df=df[cond2]
+       if filter_mask["From"] != None:
+           df=df[df["From"].str.contains(filter_mask["From"])]
+       if filter_mask["To"] != None:
+           df=df[df["To"].str.contains(filter_mask["To"])]
+       return df
+
 
     def searchFromOrTo(self,location):
         """Find From or To that matches location"""
@@ -127,16 +184,6 @@ class MikeDataParser:
     #def searchDate(self,daterange):
 
 
-#############################################################################
-def save(obj):
-    pickle.dump(obj,open('mikedata.pickle','wb'))
-
-from pathlib import Path
-def load():
-    myfile="mikedata.pickle"
-    if Path(myfile).is_file():
-        return pickle.load(open(myfile,'rb'))
-    return None
 
 #############################################################################
 if __name__ == "__main__":

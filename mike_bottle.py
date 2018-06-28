@@ -4,10 +4,7 @@ from bottle import get, post, request, template
 import mike 
 import pandas
 
-@get('/my_form')
-def show_form():
-    return '''\
-<html>
+form_str = '''\
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
@@ -38,9 +35,10 @@ def show_form():
 -->
         <div class="col-xs-4">
           <div class="input-group">
-            <input id="numresults" name="numresults" placeholder="10" type="text" required="required" class="form-control here"> 
+            <input id="numresults" name="numresults" placeholder="10" type="text" required="required" class="form-control here"  aria-describedby="numresultsHelpBlock"> 
             <div class="input-group-addon append">trips</div>
           </div>
+          <span id="numresultsHelpBlock" class="form-text text-muted">ignored if selection is "all"</span>
         </div>
       </div>
       <div class="form-group row">
@@ -65,7 +63,7 @@ def show_form():
         <div class="col-xs-4">
           <div class="input-group">
             <div class="input-group-addon prepend">than</div>
-            <input id="distance" name="distance" required="required" placeholder="500" type="text" class="form-control here"> 
+            <input id="Distance" name="Distance" required="required" placeholder="500" type="text" class="form-control here"> 
             <div class="input-group-addon append">miles</div>
           </div>
         </div>
@@ -128,7 +126,7 @@ def show_form():
           <input id="datefrom" name="datefrom" type="text" required="required" class="form-control here" aria-describedby="datefromHelpBlock">
           <div class="input-group-addon append"> <i class="fa fa-calendar"></i> </div>
          </div>
-         <span id="datetoHelpBlock" class="form-text text-muted">&nbsp;click on icon to input date &amp; time</span>
+         <span id="datefromHelpBlock" class="form-text text-muted">&nbsp;click on icon to input date &amp; time Leave blank to indicate earliest possible date</span>
         </div>
       </div>
       <div class="form-group row">
@@ -138,7 +136,7 @@ def show_form():
           <input id="dateto" name="dateto" type="text" required="required" class="form-control here" aria-describedby="datetoHelpBlock">
           <div class="input-group-addon append"> <i class="fa fa-calendar"></i> </div>
          </div>
-          <span id="datetoHelpBlock" class="form-text text-muted">&nbsp;click on icon to input date &amp; time</span>
+          <span id="datetoHelpBlock" class="form-text text-muted">&nbsp;click on icon to input date &amp; time. Leave blank to indicate "now."</span>
         </div>
       </div> 
       <div class="form-group row">
@@ -180,7 +178,11 @@ def show_form():
         $('#pickerto').datetimepicker();
     })
 </script>
-</form></body><html>'''
+</form>'''
+
+@get('/my_form')
+def show_form():
+    return "<html>"+formstr+"</body><html>"
 
 @post('/my_form')
 def show_name():
@@ -188,23 +190,12 @@ def show_name():
     return x
 
 def process_form():
-    dfilter = "Distance"+request.POST.distanceradio+request.POST.distance
-    pufilter = request.POST.pickupcity.upper()
-    ecfilter = request.POST.endcity.upper()
-    #@todo pass all this stuff to filter and hide pandas.
-    # filter("Distance >= number AND data BETWEEN 'date1' AND 'date2'")
-    #@todo use a dict where key matches column headers.  dataframe.columns()
-    # dict.fromkeys(list(df),0)
-    #@todo use between() for dates
-    if request.POST.datefrom != ""
-        fromdatefilter = request.POST.datetimeradio + " >= " + request.POST.datefrom
-    else:
-        fromdatefilter = request.POST.datetimeradio + " >= " + pandas.to_datetime("2018-01-01")
-    if request.POST.dateto != "" 
-        todatefilter   = request.POST.datetimeradio + " <= " + request.POST.dateto
-    else:
-        todatefilter   = request.POST.datetimeradio + " <= " +  pandas.to_datetime('now')
-
+    filter_mask= dict.fromkeys(mike.columns(),None)
+    filter_mask["Distance"] = request.POST.distanceradio+request.POST.Distance
+    filter_mask["From"]     = request.POST.pickupcity.upper()
+    filter_mask["To"]       = request.POST.endcity.upper()
+    filter_mask[ request.POST.datetimeradio ] = [request.POST.datefrom,request.POST.dateto]
+    
     fname = "m2"
     dataparser = mike.load()
     if dataparser != None:
@@ -213,6 +204,13 @@ def process_form():
         dataparser = mike.MikeDataParser(fname)
     dataparser.readlines()
     mike.save(dataparser)
+    dataparser.filter(filter_mask)
+    if request.POST.selecttype == "mostcommon":
+        x=dataparser.mostCommon2(request.POST.numresults).to_html()
+    if request.POST.selecttype == "mostrecent":
+        x=dataparser.mostRecent(request.POST.numresults).to_html()
+    if request.POST.selecttype == "all":
+        x=dataparser.to_html()
     
 
 
