@@ -184,7 +184,6 @@ class MikeDataParser:
     #def searchDate(self,daterange):
 
 
-
 #############################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process Fedex Pickup data.')

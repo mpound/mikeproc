@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Test date time picker</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css"> 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
+</head>
+    
+<body>
+       <form>
+       <div class="container">
+       <fieldset>
+       Show me 10 most common trips
+       with 
+          <div class="form-row">
+       <legend>Distances</legend>
+                <div class="form-group">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="distoptions" id="greaterthan" value="greater">
+                  <label class="form-check-label" for="greaterthan">greater than</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="distoptions" id="lessthan" value="less">
+                  <label class="form-check-label" for="lessthan">less than</label>
+                </div>
+                <div class="input group input-group-sm">
+<!--
+  <div class="input-group-prepend col-sm-2">
+    <span class="input-group-text" id="basic-addon1">than</span>
+  </div>
+-->
+              <input type="text" class="form-control" width="150" placeholder="500" aria-label="miles" aria-describedby="basic-addon1">
+              </div>
+              <div class="input-group-append">
+                <span class="input-group-text" id="basic-addon2">miles</span>
+              </div>
+                </div><!-- form-group -->
+          </div><!-- row -->
+
+          <div class="form-row">
+       <legend>Times</legend>
+                <div class="form-group">
+                <div class="form-check form-check-inline col-sm-4">
+                  <input class="form-check-input" type="radio" name="dateOptions" id="dateOption1" value="pickup">
+                  <label class="form-check-label" for="dateOption1">Pickup Date/Time</label>
+                </div>
+                <div class="form-check form-check-inline col-sm-4">
+                  <input class="form-check-input" type="radio" name="dateOptions" id="dateOption2" value="received">
+                  <label class="form-check-label" for="dateOption2">Received Date/Time</label>
+                </div> 
+                </div><!-- form-group -->
+          </div><!-- row -->
+
+          <div class="form-row">
+           <div class="form-group col-sm-12">
+                        <div class="col-sm-6">
+                        <div class='input-group date' id='datetimepicker1'>
+                            <label for="datetimepicker1">From:</label>
+                            <input type='text' class="form-control" />
+                            <span class="input-group-addon">
+          <div class="input-group-addon append"> <i class="fa fa-calendar"></i> </div>
+                            </span>
+                        </div>
+                        </div>
+                        <div class="col-sm-6">
+                        <div class='input-group date' id='datetimepicker2'>
+                            <label for="datetimepicker2">To:</label>
+                            <input type='text' class="form-control" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                        </div>
+          </div><!-- form-group -->
+         </div><!-- form-row-->
+
+</fieldset>
+       </div><!--container -->
+</form>
+<script type="text/javascript">
+        $(function () {
+            $('#datetimepicker1').datetimepicker();
+        });
+        $(function () {
+            $('#datetimepicker2').datetimepicker();
+        });
+</script>
+</body>
+</html>

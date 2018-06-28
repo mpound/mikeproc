@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Form</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body>
+  <div class="container">
+    <form class="form-horizontal">
+      <div class="form-group">
+        <label for="selecttype" class="control-label col-xs-4">Show me the</label> 
+        <div class="col-xs-8">
+          <select id="selecttype" name="selecttype" required="required" class="select form-control">
+            <option value="mostcommon">most common</option>
+            <option value="mostrecent">most recent</option>
+            <option value="any">any</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-xs-4"></label> 
+        <div class="col-xs-8">
+          <div class="input-group">
+            <input id="numresults" name="numresults" placeholder="10" type="text" required="required" class="form-control"> 
+            <div class="input-group-addon">trips</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="distanceradio" class="control-label col-xs-4">Load Distance</label> 
+        <div class="col-xs-8">
+          <label class="radio-inline">
+            <input type="radio" name="distanceradio" value="greater">
+                  greater than
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="distanceradio" value="less">
+                  less than
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="numresults" class="control-label col-xs-4"></label> 
+        <div class="col-xs-8">
+          <div class="input-group">
+            <input id="numresults" name="numresults" placeholder="500" type="text" class="form-control"> 
+            <div class="input-group-addon">miles</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="pickupcity" class="control-label col-xs-4">Pick-up city</label> 
+        <div class="col-xs-8">
+          <div class="input-group">
+            <input id="pickupcity" name="pickupcity" type="text" aria-describedby="pickupcityHelpBlock" class="form-control"> 
+            <div class="input-group-addon">(optional)</div>
+          </div> 
+          <span id="pickupcityHelpBlock" class="help-block">case-insensitive minimum match, e.g. "memph" will match Memphis</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="endcity" class="control-label col-xs-4">End city</label> 
+        <div class="col-xs-8">
+          <div class="input-group">
+            <input id="endcity" name="endcity" type="text" aria-describedby="endcityHelpBlock" class="form-control"> 
+            <div class="input-group-addon">(optional)</div>
+          </div> 
+          <span id="endcityHelpBlock" class="help-block">case-insensitive minimum match, e.g. "memph" will match Memphis</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="datetimeradio" class="control-label col-xs-4">with</label> 
+        <div class="col-xs-8">
+          <label class="radio-inline">
+            <input type="radio" name="datetimeradio" value="pickup">
+                  Pickup Date/Time
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="datetimeradio" value="received">
+                  Received Date/Time
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="datefrom" class="control-label col-xs-4">From</label> 
+        <div class="col-xs-8">
+          <div class="input-group">
+            <input id="datefrom" name="datefrom" type="text" class="form-control"> 
+            <div class="input-group-addon">
+              <i class="fa fa-calendar"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="dateto" class="control-label col-xs-4">To</label> 
+        <div class="col-xs-8">
+          <input id="dateto" name="dateto" type="text" class="form-control">
+        </div>
+      </div> 
+      <div class="form-group row">
+        <div class="col-xs-offset-4 col-xs-8">
+          <button name="submit" type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </form>
+      </div>
+  </body>
+</html>
