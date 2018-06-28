@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/algol2/mpound/anaconda3/bin/python
 # grep ^Subject MIKE\ DATA.mbox > m1
 # grep -E "^Date|^Subject" MIKE\ DATA.mbox > m2
 
@@ -51,7 +51,7 @@ class MikeDataParser:
         for i,c in enumerate(commasep[0]):
              if c.isdigit(): numindex = i+2  #skip the space
         if numindex == -1:
-           print "error on %s"%l
+           print("error on %s"%l)
            return None
         # need to get from state abbrev from the next token
         x = commasep[1].split("to")
@@ -61,23 +61,28 @@ class MikeDataParser:
         to_   = x[1][1:]+","+y[0]
         dist = int(y[1])
         if dist == None: 
-           print "bad distance"
+           print("bad distance")
            return None
 
-        return [pickupdate,from_,to_,dist]
+        return [pickupdate,from_.upper(),to_.upper(),dist]
 
     def parseDateToPandas(self,line):
         return pd.to_datetime(line)
 
     def longerThan(self,distance=300):
-        """Return trips longer than distance"""
+        """Return trips longer than distance, longest first"""
         df = self._dataframe
         return df[df.Dist>distance].sort_values(by=['Dist'],ascending=False)
+
+    def shorterThan(self,distance=300):
+        """Return trips shorter than distance, shortest first"""
+        df = self._dataframe
+        return df[df.Dist<distance].sort_values(by=['Dist'],ascending=True)
 
     def mostCommonSeries(self,num=5):
         """Return pandas Series with most common trips sorted by number of repeats (descending)"""
         ft = self._dataframe.groupby(['From','To'],sort=False)
-        print type(ft)
+        print(type(ft))
         s=ft.size().sort_values(0,ascending=False)
         s.name="%d Most Common Trips"%num
         return s.head(num)
@@ -100,6 +105,11 @@ class MikeDataParser:
     #    """Find From or To that matches location"""
     #    return self.dataframe().filter(like=location)
 
+    def filter(self,d=None,pu=None,ec=None,df=None,dt=None):
+        df = self._dataframe
+        if d != None:
+           cond1 = df.query(d)
+
     def searchFromOrTo(self,location):
         """Find From or To that matches location"""
         f=self.search('From',location,False)
@@ -121,8 +131,12 @@ class MikeDataParser:
 def save(obj):
     pickle.dump(obj,open('mikedata.pickle','wb'))
 
+from pathlib import Path
 def load():
-    return pickle.load(open('mikedata.pickle','rb'))
+    myfile="mikedata.pickle"
+    if Path(myfile).is_file():
+        return pickle.load(open(myfile,'rb'))
+    return None
 
 #############################################################################
 if __name__ == "__main__":
@@ -133,7 +147,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.load:
         dataparser = load()
-        dataparser._filename = args.filename
+        if dataparser != None:
+            dataparser._filename = args.filename
+        else:
+            dataparser = MikeDataParser(args.filename)
     else:
         dataparser = MikeDataParser(args.filename)
 
@@ -141,7 +158,7 @@ if __name__ == "__main__":
     x=dataparser.mostCommon(5)
     for i in x:
        s=i[1].sort_values(by=['Pickup Date'])
-       print s.to_string(index=False)
+       print(s.to_string(index=False))
     #print dataparser.longerThan(1500).to_string(index=False)
     #print dataparser.longerThan(1500).to_html(index=False)
 
