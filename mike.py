@@ -117,7 +117,11 @@ class MikeDataParser:
     def mostCommon2(self,num=5):
         """Return most common trips sorted by number of repeats (descending)"""
         df = self._dataframe
-        df.assign(freq=df.groupby(['From','To'],sort=False)['From'].transform('count')).sort_values(by=['freq','From'],ascending=[False,True])
+        df = df.assign(freq=df.groupby(['From','To'],sort=False)['From'].transform('count')).sort_values(by=['freq','From'],ascending=[False,True])
+        # regroup by frequency to flatten common from,to
+        s = df.groupby(['freq','From','To'],sort=False)
+        # s.size() returns a Series, change it back to a DataFrame
+        df = s.size().to_frame()
         return df[0:num]
 
     def dataframe(self):

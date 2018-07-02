@@ -4,6 +4,39 @@ from bottle import get, post, request, template
 import mike 
 import pandas
 
+js_str = '''\
+<!-- Include jQuery -->
+<!-- Include Date Range Picker -->
+<!--
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+-->
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
+<script>
+    $(document).ready(function(){
+        //var fromdate_input=$('input[name="datefrom"]'); 
+        //var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+        //fromdate_input.datepicker({
+            //format: 'mm/dd/yyyy',
+            //container: container,
+        //    todayHighlight: true,
+        //    autoclose: true,
+        //})
+        //var todate_input=$('input[name="dateto"]'); 
+        //var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+        //todate_input.datepicker({
+            //format: 'mm/dd/yyyy hh:mm',
+            //container: container,
+         //   todayHighlight: true,
+          //  autoclose: true,
+        //})
+        $('#pickerfrom').datetimepicker();
+        $('#pickerto').datetimepicker();
+    })
+</script>'''
+
 form_str = '''\
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -35,7 +68,7 @@ form_str = '''\
 -->
         <div class="col-xs-4">
           <div class="input-group">
-            <input id="numresults" name="numresults" placeholder="10" type="text" required="required" class="form-control here"  aria-describedby="numresultsHelpBlock"> 
+            <input id="numresults" name="numresults" value="10" type="text" required="required" class="form-control here"  aria-describedby="numresultsHelpBlock"> 
             <div class="input-group-addon append">trips</div>
           </div>
           <span id="numresultsHelpBlock" class="form-text text-muted">ignored if selection is "all"</span>
@@ -63,7 +96,7 @@ form_str = '''\
         <div class="col-xs-4">
           <div class="input-group">
             <div class="input-group-addon prepend">than</div>
-            <input id="Distance" name="Distance" required="required" placeholder="500" type="text" class="form-control here"> 
+            <input id="Distance" name="Distance" required="required" value="500" type="text" class="form-control here"> 
             <div class="input-group-addon append">miles</div>
           </div>
         </div>
@@ -123,7 +156,7 @@ form_str = '''\
         <label for="datefrom" class="col-xs-2 col-form-label">From</label> 
         <div class="col-xs-6">
          <div class="input-group date" id="pickerfrom">
-          <input id="datefrom" name="datefrom" type="text" required="required" class="form-control here" aria-describedby="datefromHelpBlock">
+          <input id="datefrom" name="datefrom" type="text" class="form-control here" aria-describedby="datefromHelpBlock">
           <div class="input-group-addon append"> <i class="fa fa-calendar"></i> </div>
          </div>
          <span id="datefromHelpBlock" class="form-text text-muted">&nbsp;click on icon to input date &amp; time Leave blank to indicate earliest possible date</span>
@@ -133,7 +166,7 @@ form_str = '''\
         <label for="dateto" class="col-xs-2 col-form-label">To</label> 
         <div class="col-xs-6">
          <div class="input-group date" id="pickerto">
-          <input id="dateto" name="dateto" type="text" required="required" class="form-control here" aria-describedby="datetoHelpBlock">
+          <input id="dateto" name="dateto" type="text" class="form-control here" aria-describedby="datetoHelpBlock">
           <div class="input-group-addon append"> <i class="fa fa-calendar"></i> </div>
          </div>
           <span id="datetoHelpBlock" class="form-text text-muted">&nbsp;click on icon to input date &amp; time. Leave blank to indicate "now."</span>
@@ -147,6 +180,7 @@ form_str = '''\
     </form>
     </div>
     <hr>
+</form>
 <!-- Include jQuery -->
 <!-- Include Date Range Picker -->
 <!--
@@ -178,18 +212,16 @@ form_str = '''\
         $('#pickerto').datetimepicker();
     })
 </script>
-</form>'''
+'''
 
 @get('/my_form')
 def show_form():
-    return "<html>"+formstr+"</body><html>"
+    return "<html>"+form_str+"</body><html>"
 
 @post('/my_form')
-def show_name():
-    x = "{} ".format(request.POST.distanceradio) +"select {} ".format(request.POST.selecttype) +"# {} ".format(request.POST.numresults) +"LDD {} ".format(request.POST.distance) +"PU {} ".format(request.POST.pickupcity) +"END {} ".format(request.POST.endcity) +"D/T {} ".format(request.POST.datetimeradio) +"DATEFROM {} ".format(request.POST.datefrom) +"DATETO {} ".format(request.POST.dateto)
-    return x
-
 def process_form():
+    xxxx = "{} ".format(request.POST.distanceradio) +"select {} ".format(request.POST.selecttype) +"# {} ".format(request.POST.numresults) +"LDD {} ".format(request.POST.distance) +"PU {} ".format(request.POST.pickupcity) +"END {} ".format(request.POST.endcity) +"D/T {} ".format(request.POST.datetimeradio) +"DATEFROM {} ".format(request.POST.datefrom) +"DATETO {} ".format(request.POST.dateto)
+
     filter_mask= dict.fromkeys(mike.columns(),None)
     filter_mask["Distance"] = request.POST.distanceradio+request.POST.Distance
     filter_mask["From"]     = request.POST.pickupcity.upper()
@@ -204,13 +236,17 @@ def process_form():
         dataparser = mike.MikeDataParser(fname)
     dataparser.readlines()
     mike.save(dataparser)
-    dataparser.filter(filter_mask)
+    filtered_df = dataparser.filter(filter_mask)
+    nr = int(request.POST.numresults)
+    dataparser._dataframe = filtered_df
     if request.POST.selecttype == "mostcommon":
-        x=dataparser.mostCommon2(request.POST.numresults).to_html()
+        x=dataparser.mostCommon2(nr).to_html()
     if request.POST.selecttype == "mostrecent":
-        x=dataparser.mostRecent(request.POST.numresults).to_html()
+        x=dataparser.mostRecent(nr).to_html()
     if request.POST.selecttype == "all":
         x=dataparser.to_html()
+    newx=x.replace('<table','<table class="table"')
+    return "<html>"+form_str+"<br><br>"+newx+"</body><html>"
     
 
 
