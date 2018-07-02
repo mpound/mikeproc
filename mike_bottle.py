@@ -244,7 +244,7 @@ def process_form():
     if request.POST.selecttype == "mostrecent":
         x=dataparser.mostRecent(nr).to_html()
     if request.POST.selecttype == "all":
-        x=dataparser.to_html()
+        x=dataparser.dataframe().sort_values(by=['Pickup Date']).to_html()
     newx=x.replace('<table','<table class="table"')
     return "<html>"+form_str+"<br><br>"+newx+"</body><html>"
     
