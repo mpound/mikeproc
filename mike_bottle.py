@@ -62,7 +62,7 @@ javascript_str = '''\
 form_str = '''\
     <div class="container">
     <br>
-    <h1>Search the email database</h1>
+    <h1>Search the Pickup/Delivery database</h1>
     <hr>
     <form method="post" class="form-horizontal" action="">
       <div class="form-group row">
@@ -116,7 +116,7 @@ form_str = '''\
         <label for="pickupcity" class="col-xs-2 col-form-label">Pick-up city</label> 
         <div class="col-xs-8">
           <div class="input-group">
-            <input id="pickupcity" name="pickupcity" type="text" aria-describedby="pickupcityHelpBlock" class="form-control here" checked="checked"> 
+            <input id="pickupcity" name="pickupcity" type="text" aria-describedby="pickupcityHelpBlock" class="form-control here"> 
             <div class="input-group-addon append">(optional)</div>
           </div> 
           <span id="pickupcityHelpBlock" class="form-text text-muted">case-insensitive minimum match, e.g. "memph" will match Memphis</span>
@@ -136,7 +136,7 @@ form_str = '''\
         <label class="col-xs-2">with</label> 
         <div class="col-xs-10">
           <label class="custom-control custom-radio">
-            <input name="datetimeradio" type="radio" required="required" class="custom-control-input" value="Pickup Date"> 
+            <input name="datetimeradio" type="radio" required="required" class="custom-control-input" value="Pickup Date" checked="checked"> 
             <span class="custom-control-indicator"></span> 
             <span class="custom-control-description">Pickup Date/Time</span>
           </label>
@@ -170,7 +170,7 @@ form_str = '''\
           <input id="datefrom" name="datefrom" type="text" class="form-control here" aria-describedby="datefromHelpBlock">
           <div class="input-group-addon append"> <i class="fa fa-calendar"></i> </div>
          </div>
-         <span id="datefromHelpBlock" class="form-text text-muted">&nbsp;click on icon to input date &amp; time Leave blank to indicate earliest possible date</span>
+         <span id="datefromHelpBlock" class="form-text text-muted">&nbsp;Click on icon to input date &amp; time. Leave blank to indicate earliest possible date</span>
         </div>
       </div>
       <div class="form-group row">
@@ -180,7 +180,7 @@ form_str = '''\
           <input id="dateto" name="dateto" type="text" class="form-control here" aria-describedby="datetoHelpBlock">
           <div class="input-group-addon append"> <i class="fa fa-calendar"></i> </div>
          </div>
-          <span id="datetoHelpBlock" class="form-text text-muted">&nbsp;click on icon to input date &amp; time. Leave blank to indicate "now."</span>
+          <span id="datetoHelpBlock" class="form-text text-muted">&nbsp;Click on icon to input date &amp; time. Leave blank to indicate "now."</span>
         </div>
       </div> 
       <div class="form-group row">

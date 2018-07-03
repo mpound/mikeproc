@@ -73,8 +73,9 @@ class MikeDataParser:
         y = commasep[2].split()
         to_   = x[1][1:]+","+y[0]
         dist = int(y[1])
-        if dist == None: 
-           print("bad distance")
+        # note there seem to be some test entries 
+        # from PU CITY, ST to DEL CITY, ST with zero distance
+        if dist == None or dist < 1: 
            return None
 
         return [pickupdate,from_.upper(),to_.upper(),dist]
