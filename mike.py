@@ -1,9 +1,6 @@
 #!/algol2/mpound/anaconda3/bin/python
 # grep ^Subject MIKE\ DATA.mbox > m1
 # grep -E "^Date|^Subject" MIKE\ DATA.mbox > m2
-
-# @TODO 
-#       Make searchable web page. (all fields, date range)
 #       
 import argparse
 import time
@@ -20,7 +17,8 @@ from pathlib import Path
 
 #############################################################################
 def save(obj):
-    pickle.dump(obj,open('mikedata.pickle','wb'))
+    myfile="mikedata.pickle"
+    pickle.dump(obj,open(myfile,'wb'))
 
 def load():
     myfile="mikedata.pickle"
@@ -97,11 +95,34 @@ class MikeDataParser:
     def mostCommonSeries(self,num=5):
         """Return pandas Series with most common trips sorted by number of repeats (descending)"""
         ft = self._dataframe.groupby(['From','To'],sort=False)
-        print(type(ft))
+        #print(type(ft))
         s=ft.size().sort_values(0,ascending=False)
         s.name="%d Most Common Trips"%num
         return s.head(num)
         #print s.nlargest(num)  #same result
+
+    def mostCommonOldVersion(self,num=5):
+        """Return most common trips sorted by number of repeats (descending)"""
+        ft = self._dataframe.groupby(['From','To'],sort=False)
+        return sorted(ft,key=lambda x:len(x[1]),reverse=True)[0:num]
+
+    def mostCommon(self,num=5):
+        """Return most common trips sorted by number of repeats (descending)"""
+        df = self._dataframe
+        df = df.assign(Frequency=df.groupby(['From','To'],sort=False)['From'].transform('count')).sort_values(by=['Frequency','From'],ascending=[False,True])
+        # now remove columns so that we have From,To,Distance, Frequency
+        df.drop(columns=['Received Date','Pickup Date'],inplace=True)
+        df.drop_duplicates(inplace=True)
+        df.sort_values(by=['Frequency'],ascending=False,inplace=True)
+
+        #  NOT NEEDED!
+        # regroup by frequency to flatten common from,to
+        #s = df.groupby(['Frequency','From','To'],sort=False)
+        # s.size() returns a Series, change it back to a DataFrame
+        # This is not an optimal representation so handcraft a DataFrame instead
+        #df = s.size().to_frame()
+        #xdf = pd.DataFrame(columns=['Frequency','From','To','Distance'])
+        return df.head(num)
 
     def grab(self,mask,num):
         if mask == "mostcommon":
@@ -109,20 +130,6 @@ class MikeDataParser:
         if mask == "mostrecent":
            return self.mostRecent(num)
 
-    def mostCommon(self,num=5):
-        """Return most common trips sorted by number of repeats (descending)"""
-        ft = self._dataframe.groupby(['From','To'],sort=False)
-        return sorted(ft,key=lambda x:len(x[1]),reverse=True)[0:num]
-
-    def mostCommon2(self,num=5):
-        """Return most common trips sorted by number of repeats (descending)"""
-        df = self._dataframe
-        df = df.assign(freq=df.groupby(['From','To'],sort=False)['From'].transform('count')).sort_values(by=['freq','From'],ascending=[False,True])
-        # regroup by frequency to flatten common from,to
-        s = df.groupby(['freq','From','To'],sort=False)
-        # s.size() returns a Series, change it back to a DataFrame
-        df = s.size().to_frame()
-        return df[0:num]
 
     def dataframe(self):
         return self._dataframe
@@ -158,12 +165,13 @@ class MikeDataParser:
        else:
           datestr=None
        if datestr != None:
-           if filter_mask[datestr][0] == None:
-              filter_mask[datestr][0] = pandas.to_datetime("2018-01-01")
-           if filter_mask[datestr][1] == None:
-              filter_mask[datestr][1] = pandas.to_datetime('now')
+           if filter_mask[datestr][0] == None or filter_mask[datestr][0]=='':
+              filter_mask[datestr][0] = pd.to_datetime("2018-01-01")
+           if filter_mask[datestr][1] or filter_mask[datestr][1]== '':
+              filter_mask[datestr][1] = pd.to_datetime('now')
            cond2 = df[datestr].between(filter_mask[datestr][0],filter_mask[datestr][1])
            df=df[cond2]
+           #print("DATES: %s %s"%(filter_mask[datestr][0],filter_mask[datestr][1]))
        if filter_mask["From"] != None:
            df=df[df["From"].str.contains(filter_mask["From"])]
        if filter_mask["To"] != None:
@@ -205,7 +213,7 @@ if __name__ == "__main__":
         dataparser = MikeDataParser(args.filename)
 
     dataparser.readlines()
-    x=dataparser.mostCommon(5)
+    x=dataparser.mostCommonOldVersion(5)
     for i in x:
        s=i[1].sort_values(by=['Pickup Date'])
        print(s.to_string(index=False))

@@ -3,52 +3,63 @@ import bottle
 from bottle import get, post, request, template
 import mike 
 import pandas
+ 
 
-js_str = '''\
+
+htmlhead_str='''\
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Mike Database Search</title>
+<link rel="stylesheet" type="text/css" href="https://datatables.net/media/css/site-examples.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css"> 
+  </head>
+'''
+
+javascript_str = '''\
 <!-- Include jQuery -->
 <!-- Include Date Range Picker -->
-<!--
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
--->
-<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
 <script>
     $(document).ready(function(){
-        //var fromdate_input=$('input[name="datefrom"]'); 
-        //var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
-        //fromdate_input.datepicker({
-            //format: 'mm/dd/yyyy',
-            //container: container,
-        //    todayHighlight: true,
-        //    autoclose: true,
-        //})
-        //var todate_input=$('input[name="dateto"]'); 
-        //var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
-        //todate_input.datepicker({
-            //format: 'mm/dd/yyyy hh:mm',
-            //container: container,
-         //   todayHighlight: true,
-          //  autoclose: true,
-        //})
+        $('#mostcommontable').DataTable({
+             "pagingType": "full_numbers",
+             "order": [[3,'desc']],
+             "ordering": true,
+             "info": true
+        });
+        $('#mostrecenttable').DataTable({
+             "pagingType": "full_numbers",
+             "order": [[0,'asc']],
+             "ordering": true,
+             "info": true
+        });
+        $('#alltable').DataTable({
+             "pagingType": "full_numbers",
+             "order": [[1,'asc']],
+             "ordering": true,
+             "info": true
+        });
+        $('#defaulttable').DataTable({
+             "pagingType": "full_numbers",
+             "order": [[0,'asc']],
+             "ordering": true,
+             "info": true
+        });
         $('#pickerfrom').datetimepicker();
         $('#pickerto').datetimepicker();
     })
 </script>'''
 
 form_str = '''\
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <meta charset="utf-8">
-    <title>Form</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> 
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css"> 
-
-  </head>
-  <body>
     <div class="container">
     <br>
     <h1>Search the email database</h1>
@@ -181,52 +192,22 @@ form_str = '''\
     </div>
     <hr>
 </form>
-<!-- Include jQuery -->
-<!-- Include Date Range Picker -->
-<!--
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
--->
-<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
-<script>
-    $(document).ready(function(){
-        //var fromdate_input=$('input[name="datefrom"]'); 
-        //var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
-        //fromdate_input.datepicker({
-            //format: 'mm/dd/yyyy',
-            //container: container,
-        //    todayHighlight: true,
-        //    autoclose: true,
-        //})
-        //var todate_input=$('input[name="dateto"]'); 
-        //var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
-        //todate_input.datepicker({
-            //format: 'mm/dd/yyyy hh:mm',
-            //container: container,
-         //   todayHighlight: true,
-          //  autoclose: true,
-        //})
-        $('#pickerfrom').datetimepicker();
-        $('#pickerto').datetimepicker();
-    })
-</script>
 '''
 
 @get('/my_form')
 def show_form():
-    return "<html>"+form_str+"</body><html>"
+    return "<html>"+htmlhead_str+"<body>"+form_str+javascript_str+"</body><html>"
 
 @post('/my_form')
 def process_form():
-    xxxx = "{} ".format(request.POST.distanceradio) +"select {} ".format(request.POST.selecttype) +"# {} ".format(request.POST.numresults) +"LDD {} ".format(request.POST.distance) +"PU {} ".format(request.POST.pickupcity) +"END {} ".format(request.POST.endcity) +"D/T {} ".format(request.POST.datetimeradio) +"DATEFROM {} ".format(request.POST.datefrom) +"DATETO {} ".format(request.POST.dateto)
+    rawinputs = "{} ".format(request.POST.distanceradio) +"select {} ".format(request.POST.selecttype) +"# {} ".format(request.POST.numresults) +"LDD {} ".format(request.POST.distance) +"PU {} ".format(request.POST.pickupcity) +"END {} ".format(request.POST.endcity) +"D/T {} ".format(request.POST.datetimeradio) +"DATEFROM {} ".format(request.POST.datefrom) +"DATETO {} ".format(request.POST.dateto)
 
     filter_mask= dict.fromkeys(mike.columns(),None)
     filter_mask["Distance"] = request.POST.distanceradio+request.POST.Distance
     filter_mask["From"]     = request.POST.pickupcity.upper()
     filter_mask["To"]       = request.POST.endcity.upper()
     filter_mask[ request.POST.datetimeradio ] = [request.POST.datefrom,request.POST.dateto]
+    print(filter_mask)
     
     fname = "m2"
     dataparser = mike.load()
@@ -236,22 +217,38 @@ def process_form():
         dataparser = mike.MikeDataParser(fname)
     dataparser.readlines()
     mike.save(dataparser)
-    filtered_df = dataparser.filter(filter_mask)
+
+    # html formatting for table returned from search
+    tableclasses="table table-striped table-bordered"
+    border="1"
+    table_id="defaulttable"
+    justify="left"
+    index=False
+    bold_rows=False
+
+    # this needs to be int rather than string
     nr = int(request.POST.numresults)
+
+    # filter the table, then replace the original
+    filtered_df = dataparser.filter(filter_mask)
     dataparser._dataframe = filtered_df
+
     if request.POST.selecttype == "mostcommon":
-        x=dataparser.mostCommon2(nr).to_html()
+        table_id="mostcommontable"
+        x=dataparser.mostCommon(nr).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows)
     if request.POST.selecttype == "mostrecent":
-        x=dataparser.mostRecent(nr).to_html()
+        table_id="mostrecenttable"
+        x=dataparser.mostRecent(nr).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows)
     if request.POST.selecttype == "all":
-        x=dataparser.dataframe().sort_values(by=['Pickup Date']).to_html()
-    newx=x.replace('<table','<table class="table"')
-    return "<html>"+form_str+"<br><br>"+newx+"</body><html>"
+        table_id="alltable"
+        x=dataparser.dataframe().sort_values(by=['Pickup Date']).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows)
+
+    return "<html>"+htmlhead_str+"\n<body>\n"+form_str+"\n<div class='container'>"+x+"</div>\n"+javascript_str+"</body><html>"
     
 
-
-#self._dataframe  = pd.DataFrame.from_records(record,columns=['Received Date','Pickup Date','From','To','Distance'])
-
-
-application=bottle.default_app()       # run in a WSGI server
-bottle.run(host='localhost', port=8080) # run in a local test server
+# run in a WSGI server
+application=bottle.default_app()       
+# True for debugging output
+bottle.debug(True)
+# run in a local test server
+bottle.run(host='localhost', port=8080) 
