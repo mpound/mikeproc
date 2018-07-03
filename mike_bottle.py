@@ -89,7 +89,7 @@ form_str = '''\
         <label class="col-xs-3">with Load Distance</label> 
         <div class="col-xs-3">
           <label class="custom-control custom-radio">
-            <input name="distanceradio" type="radio" required="required" class="custom-control-input" value=">="> 
+            <input name="distanceradio" type="radio" required="required" class="custom-control-input" value=">=" checked="checked"> 
             <span class="custom-control-indicator"></span> 
             <span class="custom-control-description">greater</span>
           </label>
@@ -116,7 +116,7 @@ form_str = '''\
         <label for="pickupcity" class="col-xs-2 col-form-label">Pick-up city</label> 
         <div class="col-xs-8">
           <div class="input-group">
-            <input id="pickupcity" name="pickupcity" type="text" aria-describedby="pickupcityHelpBlock" class="form-control here"> 
+            <input id="pickupcity" name="pickupcity" type="text" aria-describedby="pickupcityHelpBlock" class="form-control here" checked="checked"> 
             <div class="input-group-addon append">(optional)</div>
           </div> 
           <span id="pickupcityHelpBlock" class="form-text text-muted">case-insensitive minimum match, e.g. "memph" will match Memphis</span>
