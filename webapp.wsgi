@@ -1,13 +1,210 @@
-#!/algol2/mpound/anaconda3/bin/python
+import sys
+import os
 import bottle
 from bottle import get, post, request, template
-import mike 
-import pandas
-
-import os
-# Change working directory so relative paths (and template lookup) work again
-os.chdir(os.path.dirname(__file__))
+###
  
+# grep ^Subject MIKE\ DATA.mbox > m1
+# grep -E "^Date|^Subject" MIKE\ DATA.mbox > m2
+#       
+import argparse
+import time
+import pickle
+import numpy as np
+import pandas as pd
+from pathlib import Path
+
+#Subject line possible from/to
+#a,b to c,d
+#a b,c to d,e
+#a,b to c d, e
+#a b,c to d e,f
+
+directory = "/var/www/html/mikeproc/"
+#############################################################################
+def save(obj):
+    myfile=directory+"mikedata.pickle"
+    pickle.dump(obj,open(myfile,'wb'))
+
+def load():
+    myfile=directory+"mikedata.pickle"
+    if Path(myfile).is_file():
+        return pickle.load(open(myfile,'rb'))
+    return None
+
+def columns():
+    return ['Received Date','Pickup Date','From','To','Distance']
+#############################################################################
+
+class MikeDataParser:
+    def __init__(self,filename):   
+        self._filename    = filename
+        self._dataframe   = None
+
+    def readlines(self):
+        record = list()
+        with open(self._filename) as f: lines = f.readlines()
+        for ll in lines:
+            sl=ll.strip()
+            spacesep = ll.split()
+            commasep = ll.split(',')
+            if spacesep[0] == "Date:": 
+                received = [self.parseDateToPandas(sl[5:])]
+            if spacesep[0] == "Subject:": 
+                alist = self.parseSubjectToPandas(spacesep,commasep) 
+                if alist is None: continue
+                received.extend(alist)
+                record.append(received)
+
+        self._dataframe  = pd.DataFrame.from_records(record,columns=columns())
+        self._dataframe.drop_duplicates(inplace=True)
+
+    def parseSubjectToPandas(self,line,commasep):
+        #_ftd         = set()
+        if line[1] != "PU:": return None
+        pickupdate = pd.to_datetime(line[2]+" "+line[3])
+        # this will be split into 4
+        # find last digit (of time HH:MM) in order to
+        # isolate the from location
+        numindex = -1
+        for i,c in enumerate(commasep[0]):
+             if c.isdigit(): numindex = i+2  #skip the space
+        if numindex == -1:
+           print("error on %s"%l)
+           return None
+        # need to get from state abbrev from the next token
+        x = commasep[1].split("to")
+        from_ = commasep[0][numindex:]+","+x[0]
+        # need to get to state abbrev from the next token
+        y = commasep[2].split()
+        to_   = x[1][1:]+","+y[0]
+        dist = int(y[1])
+        # note there seem to be some test entries 
+        # from PU CITY, ST to DEL CITY, ST with zero distance
+        if dist == None or dist < 1: 
+           return None
+
+        return [pickupdate,from_.upper(),to_.upper(),dist]
+
+    def parseDateToPandas(self,line):
+        return pd.to_datetime(line)
+
+    def longerThan(self,distance=300):
+        """Return trips longer than distance, longest first"""
+        df = self._dataframe
+        return df[df.Dist>distance].sort_values(by=['Dist'],ascending=False)
+
+    def shorterThan(self,distance=300):
+        """Return trips shorter than distance, shortest first"""
+        df = self._dataframe
+        return df[df.Dist<distance].sort_values(by=['Dist'],ascending=True)
+
+    def mostCommonSeries(self,num=5):
+        """Return pandas Series with most common trips sorted by number of repeats (descending)"""
+        ft = self._dataframe.groupby(['From','To'],sort=False)
+        #print(type(ft))
+        s=ft.size().sort_values(0,ascending=False)
+        s.name="%d Most Common Trips"%num
+        return s.head(num)
+        #print s.nlargest(num)  #same result
+
+    def mostCommonOldVersion(self,num=5):
+        """Return most common trips sorted by number of repeats (descending)"""
+        ft = self._dataframe.groupby(['From','To'],sort=False)
+        return sorted(ft,key=lambda x:len(x[1]),reverse=True)[0:num]
+
+    def mostCommon(self,num=5):
+        """Return most common trips sorted by number of repeats (descending)"""
+        df = self._dataframe
+        df = df.assign(Frequency=df.groupby(['From','To'],sort=False)['From'].transform('count')).sort_values(by=['Frequency','From'],ascending=[False,True])
+        # now remove columns so that we have From,To,Distance, Frequency
+        df.drop(columns=['Received Date','Pickup Date'],inplace=True)
+        df.drop_duplicates(inplace=True)
+        df.sort_values(by=['Frequency'],ascending=False,inplace=True)
+
+        #  NOT NEEDED!
+        # regroup by frequency to flatten common from,to
+        #s = df.groupby(['Frequency','From','To'],sort=False)
+        # s.size() returns a Series, change it back to a DataFrame
+        # This is not an optimal representation so handcraft a DataFrame instead
+        #df = s.size().to_frame()
+        #xdf = pd.DataFrame(columns=['Frequency','From','To','Distance'])
+        return df.head(num)
+
+    def grab(self,mask,num):
+        if mask == "mostcommon":
+           return self.mostCommon(num)
+        if mask == "mostrecent":
+           return self.mostRecent(num)
+
+
+    def dataframe(self):
+        return self._dataframe
+
+    def to_html(self):
+        return self._dataframe.to_html()
+
+    def mostRecent(self,num=5):
+        """Return most recent (Pickup Date) trips sorted by most recent first"""
+        return self._dataframe.sort_values(by=['Pickup Date'],ascending=False)[0:num]
+
+    def search(self,column,expr,casesensitive=False):
+        """Find string expr in column"""
+        if not casesensitive: match = expr.upper()
+        else:                 match = expr
+        df = self._dataframe
+        return df[df[column].str.contains(item)]
+
+    # wrong. this will return the entire column
+    #def searchLocation(self,location):
+    #    """Find From or To that matches location"""
+    #    return self.dataframe().filter(like=location)
+
+    #['Received Date','Pickup Date','From','To','Distance']
+    def filter(self,filter_mask):
+       df = self._dataframe
+       if filter_mask['Distance']!=None:
+          df=df.query('Distance'+filter_mask['Distance'])
+       if filter_mask["Received Date"] != None:
+          datestr = "Received Date"
+       elif filter_mask["Pickup Date"] != None:
+          datestr = "Pickup Date"
+       else:
+          datestr=None
+       if datestr != None:
+           if filter_mask[datestr][0] == None or filter_mask[datestr][0]=='':
+              filter_mask[datestr][0] = pd.to_datetime("2018-01-01")
+           if filter_mask[datestr][1] or filter_mask[datestr][1]== '':
+              filter_mask[datestr][1] = pd.to_datetime('now')
+           cond2 = df[datestr].between(filter_mask[datestr][0],filter_mask[datestr][1])
+           df=df[cond2]
+           #print("DATES: %s %s"%(filter_mask[datestr][0],filter_mask[datestr][1]))
+       if filter_mask["From"] != None:
+           df=df[df["From"].str.contains(filter_mask["From"])]
+       if filter_mask["To"] != None:
+           df=df[df["To"].str.contains(filter_mask["To"])]
+       return df
+
+
+    def searchFromOrTo(self,location):
+        """Find From or To that matches location"""
+        f=self.search('From',location,False)
+        t=self.search('To',location,False)
+        return pd.concat([f,t])
+
+    def searchFrom(self,location):
+        """Find From that matches location"""
+        return self.search('From',location,False)
+
+    def searchTo(self,location):
+        """Find To that matches location"""
+        return self.search('To',location,False)
+
+    #def searchDate(self,daterange):
+
+
+#############################################################################
+###
 
 htmlhead_str='''\
   <head>
@@ -197,29 +394,29 @@ form_str = '''\
 </form>
 '''
 
-@get('/my_form')
+@get('/')
 def show_form():
     return "<html>"+htmlhead_str+"<body>"+form_str+javascript_str+"</body><html>"
 
-@post('/my_form')
+@post('/')
 def process_form():
     rawinputs = "{} ".format(request.POST.distanceradio) +"select {} ".format(request.POST.selecttype) +"# {} ".format(request.POST.numresults) +"LDD {} ".format(request.POST.distance) +"PU {} ".format(request.POST.pickupcity) +"END {} ".format(request.POST.endcity) +"D/T {} ".format(request.POST.datetimeradio) +"DATEFROM {} ".format(request.POST.datefrom) +"DATETO {} ".format(request.POST.dateto)
 
-    filter_mask= dict.fromkeys(mike.columns(),None)
+    filter_mask= dict.fromkeys(columns(),None)
     filter_mask["Distance"] = request.POST.distanceradio+request.POST.Distance
     filter_mask["From"]     = request.POST.pickupcity.upper()
     filter_mask["To"]       = request.POST.endcity.upper()
     filter_mask[ request.POST.datetimeradio ] = [request.POST.datefrom,request.POST.dateto]
     print(filter_mask)
     
-    fname = "m2"
-    dataparser = mike.load()
+    fname = directory+"m2"
+    dataparser = load()
     if dataparser != None:
         dataparser._filename = fname
     else:
-        dataparser = mike.MikeDataParser(fname)
+        dataparser = MikeDataParser(fname)
     dataparser.readlines()
-    mike.save(dataparser)
+    save(dataparser)
 
     # html formatting for table returned from search
     tableclasses="table table-striped table-bordered"
@@ -249,5 +446,7 @@ def process_form():
     return "<html>"+htmlhead_str+"\n<body>\n"+form_str+"\n<div class='container'>"+x+"</div>\n"+javascript_str+"</body><html>"
     
 
+############################
 # run in a WSGI server
+############################
 application=bottle.default_app()       
