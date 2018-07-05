@@ -238,7 +238,7 @@ javascript_str = '''\
         });
         $('#mostrecenttable').DataTable({
              "pagingType": "full_numbers",
-             "order": [[0,'asc']],
+             "order": [[0,'desc']],
              "ordering": true,
              "info": true
         });
