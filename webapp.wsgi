@@ -425,6 +425,11 @@ def process_form():
     justify="left"
     index=False
     bold_rows=False
+    # want Day name in the date display. Default is %Y-%m-%d %T
+    # found example at https://github.com/pandas-dev/pandas/issues/10690
+    formatters = {'Received Date': lambda x: x.strftime('%a %Y-%m-%d %T'),
+                  'Pickup Date': lambda x: x.strftime('%a %Y-%m-%d %T')
+                 }
 
     # this needs to be int rather than string
     nr = int(request.POST.numresults)
@@ -438,10 +443,10 @@ def process_form():
         x=dataparser.mostCommon(nr).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows)
     if request.POST.selecttype == "mostrecent":
         table_id="mostrecenttable"
-        x=dataparser.mostRecent(nr).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows)
+        x=dataparser.mostRecent(nr).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows,formatters=formatters)
     if request.POST.selecttype == "all":
         table_id="alltable"
-        x=dataparser.dataframe().sort_values(by=['Pickup Date']).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows)
+        x=dataparser.dataframe().sort_values(by=['Pickup Date']).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows,formatters=formatters)
 
     return "<html>"+htmlhead_str+"\n<body>\n"+form_str+"\n<div class='container'>"+x+"</div>\n"+javascript_str+"</body><html>"
     
