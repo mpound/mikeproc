@@ -427,8 +427,9 @@ def process_form():
     bold_rows=False
     # want Day name in the date display. Default is %Y-%m-%d %T
     # found example at https://github.com/pandas-dev/pandas/issues/10690
-    formatters = {'Received Date': lambda x: x.strftime('%a %Y-%m-%d %T'),
-                  'Pickup Date': lambda x: x.strftime('%a %Y-%m-%d %T')
+    # Note must put day at end or column sorting is incorrect
+    formatters = {'Received Date': lambda x: x.strftime('%Y-%m-%d %T %a'),
+                  'Pickup Date': lambda x: x.strftime('%Y-%m-%d %T %a')
                  }
 
     # this needs to be int rather than string
