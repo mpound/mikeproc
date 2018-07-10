@@ -34,6 +34,8 @@ def load():
 
 def columns():
     return ['Received Date','Pickup Date','From','To','Distance']
+
+
 #############################################################################
 
 class MikeDataParser:
@@ -200,7 +202,9 @@ class MikeDataParser:
         """Find To that matches location"""
         return self.search('To',location,False)
 
-    #def searchDate(self,daterange):
+    def updatetime(self):
+        """Return time of last update, which is pretty close to time of last entry"""
+        return time.ctime(os.path.getmtime(self_file))
 
 
 #############################################################################
@@ -451,7 +455,7 @@ def process_form():
         table_id="alltable"
         x=dataparser.dataframe().sort_values(by=['Pickup Date']).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows,formatters=formatters)
 
-    return "<html>"+htmlhead_str+"\n<body>\n"+form_str+"\n<div class='container'>"+x+"</div>\n"+javascript_str+"</body><html>"
+    return "<html>"+htmlhead_str+"\n<body>\n"+"<br>Last data update: "+dataparser.updatetime()+"<br>"+form_str+"\n<div class='container'>"+x+"</div>\n"+javascript_str+"</body><html>"
     
 
 ############################
