@@ -204,7 +204,7 @@ class MikeDataParser:
 
     def updatetime(self):
         """Return time of last update, which is pretty close to time of last entry"""
-        return time.ctime(os.path.getmtime(self_file))
+        return time.ctime(os.path.getmtime(self._file))
 
 
 #############################################################################
