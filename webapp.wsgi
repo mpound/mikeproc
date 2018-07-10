@@ -410,11 +410,12 @@ def process_form():
     print(filter_mask)
     
     fname = directory+"m2"
-    dataparser = load()
-    if dataparser != None:
-        dataparser._filename = fname
-    else:
-        dataparser = MikeDataParser(fname)
+    #dataparser = load()
+    #if dataparser != None:
+    #    dataparser._filename = fname
+    #else:
+    #    dataparser = MikeDataParser(fname)
+    dataparser = MikeDataParser(fname)
     dataparser.readlines()
     save(dataparser)
 
