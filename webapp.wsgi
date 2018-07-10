@@ -400,7 +400,7 @@ form_str = '''\
 
 @get('/')
 def show_form():
-    return "<html>"+htmlhead_str+"<body>"+form_str+javascript_str+"</body><html>"
+    return "<html>"+htmlhead_str+"<body><div class='container'><br>Database last updated: "+dataparser.updatetime()+"<br></div>\n"+form_str+javascript_str+"</body><html>"
 
 @post('/')
 def process_form():
