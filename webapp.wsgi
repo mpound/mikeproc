@@ -455,7 +455,7 @@ def process_form():
         table_id="alltable"
         x=dataparser.dataframe().sort_values(by=['Pickup Date']).to_html(index=index,classes=tableclasses,table_id=table_id,border=border,justify=justify,bold_rows=bold_rows,formatters=formatters)
 
-    return "<html>"+htmlhead_str+"\n<body>\n"+"<br>Last data update: "+dataparser.updatetime()+"<br>"+form_str+"\n<div class='container'>"+x+"</div>\n"+javascript_str+"</body><html>"
+    return "<html>"+htmlhead_str+"\n<body>\n"+"<div class='container'><br>Database last updated: "+dataparser.updatetime()+"<br></div>\n"+form_str+"\n<div class='container'>"+x+"</div>\n"+javascript_str+"</body><html>"
     
 
 ############################
