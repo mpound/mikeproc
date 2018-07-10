@@ -410,12 +410,13 @@ def process_form():
     print(filter_mask)
     
     fname = directory+"m2"
-    #dataparser = load()
-    #if dataparser != None:
-    #    dataparser._filename = fname
-    #else:
-    #    dataparser = MikeDataParser(fname)
+    dataparser = load()
+    if dataparser != None:
+        dataparser._filename = fname
+    else:
+        dataparser = MikeDataParser(fname)
     dataparser = MikeDataParser(fname)
+    # this will pick up any new data in fname that is not in pickle.
     dataparser.readlines()
     save(dataparser)
 
